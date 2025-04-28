@@ -1,41 +1,37 @@
 #include <stdio.h>
 #include <string.h>
-#include <openssl/des.h>
 #include <stdlib.h>
-#define key_size 8
-#define maxn 1000
+#include <openssl/des.h>
+#define KEY_SIZE 8
+#define MAXN 1000
 
 int main()
 {
-    unsigned char key[key_size] = "banichka";
-    unsigned char input[maxn];
-    fgets(input,maxn,stdin);
+    unsigned char key[KEY_SIZE] = "banichka";
+    unsigned char input[MAXN];
 
-    input[strcspn(input, "\n")] = '\0';
-    unsigned int input_lenght = strlen(input);
+    scanf("%s", input);
 
-    int padding_lenght = ((input_lenght + 7)/8) * 8;
-    unsigned char padded_input[padding_lenght];
-    unsigned char output[padding_lenght];
+    unsigned int length = strlen(input);
 
-    memcpy(padded_input,input, input_lenght);
-    //PKCS55 padding
-    memset (padded_input + input_lenght, 
-            padding_lenght - input_lenght,
-            padding_lenght - input_lenght
-    );
+    int padded_length = ((length + 7) / 8) * 8;
+    unsigned char padded_input[padded_length];
+    unsigned char output[padded_length];
+
+    int difference_length = padded_length - length;
+    memcpy(padded_input, input, length);
+    memset(padded_input + length, difference_length, difference_length);
 
     DES_key_schedule key_schedule;
-    DES_set_key((DES_cblock*) key, &key_schedule);
-    for(int i = 0; i < padding_lenght; i +=8)
+    DES_set_key( (DES_cblock*) key, &key_schedule);
+
+    for(int i = 0; i < padded_length; i += 8)
     {
-        DES_ecb_encrypt((DES_cblock*) (padded_input + 1),
-        (DES_cblock*) (output + 1),
-        &key_schedule,
-        DES_ENCRYPT
-    );
+        DES_ecb_encrypt( (DES_cblock*) (padded_input + i),
+            (DES_cblock*) (output + i), &key_schedule, DES_ENCRYPT);
     }
-    for(int i = 0; i < padding_lenght; i++)
+
+    for(int i = 0; i < padded_length; i++)
     {
         printf("%02x", output[i]);
     }
